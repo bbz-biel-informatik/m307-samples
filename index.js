@@ -2,6 +2,7 @@
 var express = require('express');
 var mustacheExpress = require('mustache-express');
 var Pool = require('pg').Pool;
+var bodyParser = require('body-parser');
 
 var app = express();
 var port = 3000;
@@ -19,9 +20,22 @@ var pool = new Pool({
   port: 5432,
 });
 
+app.use(express.urlencoded({ extended: true }));
+
 // Routen
 app.get('/', (req, res) => {
   res.send('Hello World!');
+});
+
+app.get('/new', (req, res) => {
+  res.render('new_todo');
+});
+
+app.post('/create', (req, res) => {
+  pool.query(`INSERT INTO todos (name) VALUES ('${req.body.name}')`, (error, result) => {
+    if(error) { throw error; }
+    res.redirect('/todos');
+  });
 });
 
 app.get('/todos', (req, res) => {
