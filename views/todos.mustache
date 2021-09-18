@@ -1,8 +1,16 @@
-<div class="todos">
-  {{#todos}}
-    <div class="item">
-      {{name}}
-    </div>
-  {{/todos}}
-</div>
+<body style="background-color: {{farbe}}">
 
+  <div class="todos">
+    {{#todos}}
+      <div class="item">
+        {{name}}
+      </div>
+    {{/todos}}
+  </div>
+
+  <form action="/setcolor" method="post">
+    Name: <input type="color" name="farbe">
+    <input type="submit" value="OK">
+  </form>
+
+</body>

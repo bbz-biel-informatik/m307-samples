@@ -3,6 +3,7 @@ var express = require('express');
 var mustacheExpress = require('mustache-express');
 var Pool = require('pg').Pool;
 var bodyParser = require('body-parser');
+var cookieParser = require('cookie-parser');
 
 var app = express();
 var port = 3000;
@@ -22,9 +23,16 @@ var pool = new Pool({
 
 app.use(express.urlencoded({ extended: true }));
 
+app.use(cookieParser());
+
 // Routen
 app.get('/', (req, res) => {
-  res.send('Hello World!');
+  res.render('todos', { farbe: req.cookies['color'] });
+});
+
+app.post('/setcolor', (req, res) => {
+  res.cookie('color', req.body.farbe);
+  res.redirect('/todos');
 });
 
 app.get('/new', (req, res) => {
@@ -43,7 +51,7 @@ app.get('/todos', (req, res) => {
     if(error) {
       throw error;
     }
-    res.render('todos', { todos: result.rows });
+    res.render('todos', { todos: result.rows, farbe: req.cookies['color'] });
   });
 });
 
