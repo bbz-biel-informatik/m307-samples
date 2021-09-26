@@ -15,10 +15,10 @@ app.set('views', __dirname + '/views');
 
 var pool = new Pool({
   user: 'postgres',
-  host: 'localhost',
-  database: 'm307',
-  password: 'postgres',
-  port: 5432,
+  host: 'bbz.cloud',
+  database: 'm307demo',
+  password: '...',
+  port: 8080,
 });
 
 app.use(express.urlencoded({ extended: true }));
@@ -52,6 +52,39 @@ app.get('/todos', (req, res) => {
       throw error;
     }
     res.render('todos', { todos: result.rows, farbe: req.cookies['color'] });
+  });
+});
+
+app.get('/todos/:id', (req, res) => {
+  pool.query(`SELECT * FROM todos WHERE id = ${req.params.id}`, (error, result) => {
+    if(error) {
+      throw error;
+    }
+    res.render('todo', { todo: result.rows[0] });
+  });
+});
+
+app.get('/todos/:id/edit', (req, res) => {
+  pool.query(`SELECT * FROM todos WHERE id = ${req.params.id}`, (error, result) => {
+    if(error) {
+      throw error;
+    }
+    res.render('edit_todo', { todo: result.rows[0] });
+  });
+});
+
+
+app.post('/update/:id', (req, res) => {
+  pool.query(`UPDATE todos SET name = '${req.body.name}' WHERE id = ${req.params.id}`, (error, result) => {
+    if(error) { throw error; }
+    res.redirect('/todos');
+  });
+});
+
+app.post('/delete/:id', (req, res) => {
+  pool.query(`DELETE FROM todos WHERE id = ${req.params.id}`, (error, result) => {
+    if(error) { throw error; }
+    res.redirect('/todos');
   });
 });
 
