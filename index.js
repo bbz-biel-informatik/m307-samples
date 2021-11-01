@@ -6,6 +6,7 @@ var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 const multer  = require('multer');
 const upload = multer({ dest: 'public/uploads/' });
+const bcrypt = require('bcrypt');
 
 var app = express();
 var port = 3000;
@@ -98,6 +99,18 @@ app.post('/dateiupload', upload.single('image'), function (req, res, next) {
   pool.query(`INSERT INTO uploads (beschreibung, dateiname) VALUES ('${req.body.beschreibung}', '${req.file.filename}')`, (error, result) => {
     if(error) { throw error; }
     res.redirect('/todos');
+  });
+});
+
+app.get('/registration_form', function(req, res) {
+  res.render('registration_form');
+});
+
+app.post('/register', function (req, res) {
+  var passwort = bcrypt.hashSync(req.body.passwort, 10);
+  pool.query(`INSERT INTO users (username, passwort) VALUES ('${req.body.benutzername}', '${passwort}')`, (error, result) => {
+    if(error) { throw error; }
+    res.redirect('/login');
   });
 });
 
