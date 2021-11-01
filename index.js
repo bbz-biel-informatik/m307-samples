@@ -4,6 +4,8 @@ var mustacheExpress = require('mustache-express');
 var Pool = require('pg').Pool;
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
+const multer  = require('multer');
+const upload = multer({ dest: 'public/uploads/' });
 
 var app = express();
 var port = 3000;
@@ -83,6 +85,17 @@ app.post('/update/:id', (req, res) => {
 
 app.post('/delete/:id', (req, res) => {
   pool.query(`DELETE FROM todos WHERE id = ${req.params.id}`, (error, result) => {
+    if(error) { throw error; }
+    res.redirect('/todos');
+  });
+});
+
+app.get('/form', function(req, res) {
+  res.render('form');
+});
+
+app.post('/dateiupload', upload.single('image'), function (req, res, next) {
+  pool.query(`INSERT INTO uploads (beschreibung, dateiname) VALUES ('${req.body.beschreibung}', '${req.file.filename}')`, (error, result) => {
     if(error) { throw error; }
     res.redirect('/todos');
   });
