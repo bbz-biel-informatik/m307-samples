@@ -7,6 +7,7 @@ var cookieParser = require('cookie-parser');
 const multer  = require('multer');
 const upload = multer({ dest: 'public/uploads/' });
 const bcrypt = require('bcrypt');
+const sessions = require('express-session');
 
 var app = express();
 var port = 3000;
@@ -27,6 +28,13 @@ var pool = new Pool({
 app.use(express.urlencoded({ extended: true }));
 
 app.use(cookieParser());
+
+app.use(sessions({
+  secret: "thisismysecrctekeyfhrgfgrfrty84fwir767",
+  saveUninitialized: true,
+  cookie: { maxAge: 86400000, secure: false },
+  resave: false
+}));
 
 // Routen
 app.get('/', (req, res) => {
@@ -50,6 +58,7 @@ app.post('/create', (req, res) => {
 });
 
 app.get('/todos', (req, res) => {
+  if(!req.session.benutzername) { res.redirect('/login_form'); return; }
   pool.query('SELECT * FROM todos', (error, result) => {
     if(error) {
       throw error;
@@ -108,9 +117,25 @@ app.get('/registration_form', function(req, res) {
 
 app.post('/register', function (req, res) {
   var passwort = bcrypt.hashSync(req.body.passwort, 10);
-  pool.query(`INSERT INTO users (username, passwort) VALUES ('${req.body.benutzername}', '${passwort}')`, (error, result) => {
+  pool.query(`INSERT INTO users (benutzername, passwort) VALUES ('${req.body.benutzername}', '${passwort}')`, (error, result) => {
     if(error) { throw error; }
-    res.redirect('/login');
+    res.redirect('/login_form');
+  });
+});
+
+app.get('/login_form', function(req, res) {
+  res.render('login_form');
+});
+
+app.post('/login', function (req, res) {
+  pool.query(`SELECT * FROM users WHERE benutzername = '${req.body.benutzername}'`, (error, result) => {
+    if(error) { throw error; }
+    if(bcrypt.compareSync(req.body.passwort, result.rows[0].passwort)) {
+      req.session.benutzername = result.rows[0].benutzername;
+      res.redirect('/todos');
+    } else {
+      res.redirect('/login_form');
+    }
   });
 });
 
